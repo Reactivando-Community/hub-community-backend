@@ -72,6 +72,12 @@
     },
     "subscription_link": {
       "type": "string"
+    },
+    "slug": {
+      "type": "string",
+      "regex": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "unique": true,
+      "required": false
     }
   }
 }
