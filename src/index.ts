@@ -25,29 +25,25 @@ export default {
 
     const settings = await pluginStore.get({ key: "email" });
     const publicUrl =
-      process.env.PUBLIC_URL ||
-      "https://hubcommunity-manager.8020digital.com.br";
+      process.env.PUBLIC_URL || "https://manager.hubcommunity.io";
 
     if (settings && settings.reset_password) {
       // 1. Force update the response_url
-      const newUrl = `${publicUrl}/admin/auth/reset-password`;
-      settings.reset_password.options.response_url = newUrl;
+      const resetPasswordUrl = `${publicUrl}/admin/auth/reset-password`;
+      settings.reset_password.options.response_url = resetPasswordUrl;
 
-      // 2. Fix the message template if it has a redundant ?code= parameter
-      // Strapi automatically appends the code to the URL
-      let message = settings.reset_password.options.message;
-      if (message.includes("<%= URL %>?code=")) {
-        strapi.log.info(
-          "Cleaning up redundant ?code= parameter from reset password template...",
-        );
-        settings.reset_password.options.message = message.replace(
-          "<%= URL %>?code=<%= TOKEN %>",
-          "<%= URL %>",
-        );
-      }
+      // 2. Hardcode the URL in the message to be 100% sure it's not empty
+      // We keep the <%= TOKEN %> which is correctly populated by Strapi
+      settings.reset_password.options.message = `
+<p>We heard that you lost your password. Sorry about that!</p>
+<p>But don't worry! You can use the following link to reset your password:</p>
+<p><a href="${resetPasswordUrl}?code=<%= TOKEN %>">${resetPasswordUrl}?code=<%= TOKEN %></a></p>
+<p>Thanks.</p>`.trim();
 
       await pluginStore.set({ key: "email", value: settings });
-      strapi.log.info(`Reset password configuration updated. URL: ${newUrl}`);
+      strapi.log.info(
+        `Reset password configuration updated with hardcoded URL: ${resetPasswordUrl}`,
+      );
 
       // Verify immediately
       const updatedSettings = await pluginStore.get({ key: "email" });
