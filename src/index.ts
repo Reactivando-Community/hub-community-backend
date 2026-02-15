@@ -16,5 +16,23 @@ export default {
    * This gives you an opportunity to set up your data model,
    * run jobs, or perform some special logic.
    */
-  bootstrap(/* { strapi }: { strapi: Core.Strapi } */) {},
+  async bootstrap({ strapi }: { strapi: any }) {
+    // Set the reset password URL programmatically if not set
+    const pluginStore = strapi.store({
+      type: "plugin",
+      name: "users-permissions",
+    });
+
+    const settings = await pluginStore.get({ key: "email" });
+    const publicUrl = process.env.PUBLIC_URL || "http://localhost:1340";
+
+    if (
+      settings.reset_password &&
+      !settings.reset_password.options.response_url
+    ) {
+      strapi.log.info("Setting default reset password URL...");
+      settings.reset_password.options.response_url = `${publicUrl}/admin/auth/reset-password`;
+      await pluginStore.set({ key: "email", value: settings });
+    }
+  },
 };
