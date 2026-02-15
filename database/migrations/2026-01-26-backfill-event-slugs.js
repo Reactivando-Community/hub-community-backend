@@ -8,7 +8,7 @@
  * It only processes events that don't have a slug.
  */
 
-const slugify = require('slugify');
+const slugify = require("slugify");
 
 const MAX_SLUG_LENGTH = 100;
 
@@ -16,146 +16,158 @@ const MAX_SLUG_LENGTH = 100;
  * Generates a unique slug from the title
  */
 async function generateUniqueSlug(title, excludeDocumentId = null) {
-	if (!title || typeof title !== 'string') {
-		throw new Error('Title is required to generate slug');
-	}
+  if (!title || typeof title !== "string") {
+    throw new Error("Title is required to generate slug");
+  }
 
-	// Generate base slug from title
-	let baseSlug = slugify(title, {
-		lower: true,
-		strict: true,
-		trim: true
-	});
+  // Generate base slug from title
+  let baseSlug = slugify(title, {
+    lower: true,
+    strict: true,
+    trim: true,
+  });
 
-	// Truncate to max length
-	if (baseSlug.length > MAX_SLUG_LENGTH) {
-		baseSlug = baseSlug.substring(0, MAX_SLUG_LENGTH);
-		// Remove trailing hyphen if truncation caused it
-		baseSlug = baseSlug.replace(/-+$/, '');
-	}
+  // Truncate to max length
+  if (baseSlug.length > MAX_SLUG_LENGTH) {
+    baseSlug = baseSlug.substring(0, MAX_SLUG_LENGTH);
+    // Remove trailing hyphen if truncation caused it
+    baseSlug = baseSlug.replace(/-+$/, "");
+  }
 
-	let slug = baseSlug;
-	let counter = 2;
+  let slug = baseSlug;
+  let counter = 2;
 
-	// Check for uniqueness and add suffix if needed
-	while (true) {
-		const filters = { slug: { $eq: slug } };
+  // Check for uniqueness and add suffix if needed
+  while (true) {
+    const filters = { slug: { $eq: slug } };
 
-		// Exclude current event when processing
-		if (excludeDocumentId) {
-			filters.documentId = { $ne: excludeDocumentId };
-		}
+    // Exclude current event when processing
+    if (excludeDocumentId) {
+      filters.documentId = { $ne: excludeDocumentId };
+    }
 
-		const existingEvents = await strapi.entityService.findMany(
-			'api::event.event',
-			{
-				filters,
-				limit: 1
-			}
-		);
+    const existingEvents = await strapi.entityService.findMany(
+      "api::event.event",
+      {
+        filters,
+        limit: 1,
+      },
+    );
 
-		if (!existingEvents || existingEvents.length === 0) {
-			break;
-		}
+    if (!existingEvents || existingEvents.length === 0) {
+      break;
+    }
 
-		// Slug exists, try with counter suffix
-		const suffix = `-${counter}`;
-		const maxBaseLength = MAX_SLUG_LENGTH - suffix.length;
-		slug = `${baseSlug.substring(0, maxBaseLength)}${suffix}`;
-		counter++;
-	}
+    // Slug exists, try with counter suffix
+    const suffix = `-${counter}`;
+    const maxBaseLength = MAX_SLUG_LENGTH - suffix.length;
+    slug = `${baseSlug.substring(0, maxBaseLength)}${suffix}`;
+    counter++;
+  }
 
-	return slug;
+  return slug;
 }
 
 /**
  * Migration UP: Apply changes
  */
 async function up() {
-	strapi.log.info('Starting event slug backfill migration...');
+  strapi.log.info("Starting event slug backfill migration...");
 
-	try {
-		// Get all events without slugs
-		const eventsWithoutSlugs = await strapi.db
-			.query('api::event.event')
-			.findMany({
-				where: {
-					$or: [{ slug: null }, { slug: '' }]
-				}
-			});
+  try {
+    // Ensure slug column exists before querying
+    const hasSlugColumn = await strapi.db.connection.schema.hasColumn(
+      "events",
+      "slug",
+    );
+    if (!hasSlugColumn) {
+      strapi.log.info("Adding slug column to events table...");
+      await strapi.db.connection.schema.alterTable("events", (table) => {
+        table.string("slug").unique().nullable();
+      });
+    }
 
-		if (!eventsWithoutSlugs || eventsWithoutSlugs.length === 0) {
-			strapi.log.info(
-				'✓ No events need slug generation. All events already have slugs.'
-			);
-			return;
-		}
+    // Get all events without slugs
+    const eventsWithoutSlugs = await strapi.db
+      .query("api::event.event")
+      .findMany({
+        where: {
+          $or: [{ slug: null }, { slug: "" }],
+        },
+      });
 
-		strapi.log.info(`Found ${eventsWithoutSlugs.length} events without slugs.`);
+    if (!eventsWithoutSlugs || eventsWithoutSlugs.length === 0) {
+      strapi.log.info(
+        "✓ No events need slug generation. All events already have slugs.",
+      );
+      return;
+    }
 
-		let successCount = 0;
-		let errorCount = 0;
-		const errors = [];
+    strapi.log.info(`Found ${eventsWithoutSlugs.length} events without slugs.`);
 
-		// Process each event
-		for (const event of eventsWithoutSlugs) {
-			try {
-				if (!event.title) {
-					strapi.log.warn(`⚠ Skipping event ${event.documentId}: No title`);
-					errorCount++;
-					errors.push({
-						documentId: event.documentId,
-						error: 'No title provided'
-					});
-					continue;
-				}
+    let successCount = 0;
+    let errorCount = 0;
+    const errors = [];
 
-				// Generate unique slug
-				const slug = await generateUniqueSlug(event.title, event.documentId);
+    // Process each event
+    for (const event of eventsWithoutSlugs) {
+      try {
+        if (!event.title) {
+          strapi.log.warn(`⚠ Skipping event ${event.documentId}: No title`);
+          errorCount++;
+          errors.push({
+            documentId: event.documentId,
+            error: "No title provided",
+          });
+          continue;
+        }
 
-				// Update event with slug using database query
-				await strapi.db.query('api::event.event').update({
-					where: { documentId: event.documentId },
-					data: { slug }
-				});
+        // Generate unique slug
+        const slug = await generateUniqueSlug(event.title, event.documentId);
 
-				strapi.log.info(`✓ Event "${event.title}" → slug: "${slug}"`);
-				successCount++;
-			} catch (error) {
-				strapi.log.error(
-					`✗ Error processing event ${event.documentId}: ${error.message}`
-				);
-				errorCount++;
-				errors.push({
-					documentId: event.documentId,
-					title: event.title,
-					error: error.message
-				});
-			}
-		}
+        // Update event with slug using database query
+        await strapi.db.query("api::event.event").update({
+          where: { documentId: event.documentId },
+          data: { slug },
+        });
 
-		// Summary
-		strapi.log.info('='.repeat(60));
-		strapi.log.info('Migration Summary:');
-		strapi.log.info('='.repeat(60));
-		strapi.log.info(`Total events processed: ${eventsWithoutSlugs.length}`);
-		strapi.log.info(`✓ Successfully updated: ${successCount}`);
-		strapi.log.info(`✗ Errors: ${errorCount}`);
+        strapi.log.info(`✓ Event "${event.title}" → slug: "${slug}"`);
+        successCount++;
+      } catch (error) {
+        strapi.log.error(
+          `✗ Error processing event ${event.documentId}: ${error.message}`,
+        );
+        errorCount++;
+        errors.push({
+          documentId: event.documentId,
+          title: event.title,
+          error: error.message,
+        });
+      }
+    }
 
-		if (errors.length > 0) {
-			strapi.log.warn('\nErrors:');
-			errors.forEach(err => {
-				strapi.log.warn(
-					`  - ${err.documentId} (${err.title || 'no title'}): ${err.error}`
-				);
-			});
-		}
+    // Summary
+    strapi.log.info("=".repeat(60));
+    strapi.log.info("Migration Summary:");
+    strapi.log.info("=".repeat(60));
+    strapi.log.info(`Total events processed: ${eventsWithoutSlugs.length}`);
+    strapi.log.info(`✓ Successfully updated: ${successCount}`);
+    strapi.log.info(`✗ Errors: ${errorCount}`);
 
-		strapi.log.info('✓ Migration completed!');
-	} catch (error) {
-		strapi.log.error('✗ Migration failed:', error);
-		throw error;
-	}
+    if (errors.length > 0) {
+      strapi.log.warn("\nErrors:");
+      errors.forEach((err) => {
+        strapi.log.warn(
+          `  - ${err.documentId} (${err.title || "no title"}): ${err.error}`,
+        );
+      });
+    }
+
+    strapi.log.info("✓ Migration completed!");
+  } catch (error) {
+    strapi.log.error("✗ Migration failed:", error);
+    throw error;
+  }
 }
 
 /**
@@ -164,40 +176,40 @@ async function up() {
  * Note: This removes all slugs from events. Use with caution!
  */
 async function down() {
-	strapi.log.info('Reverting event slug backfill migration...');
+  strapi.log.info("Reverting event slug backfill migration...");
 
-	try {
-		// Get all events with slugs
-		const eventsWithSlugs = await strapi.db.query('api::event.event').findMany({
-			where: {
-				slug: { $ne: null }
-			}
-		});
+  try {
+    // Get all events with slugs
+    const eventsWithSlugs = await strapi.db.query("api::event.event").findMany({
+      where: {
+        slug: { $ne: null },
+      },
+    });
 
-		if (!eventsWithSlugs || eventsWithSlugs.length === 0) {
-			strapi.log.info('✓ No events have slugs to remove.');
-			return;
-		}
+    if (!eventsWithSlugs || eventsWithSlugs.length === 0) {
+      strapi.log.info("✓ No events have slugs to remove.");
+      return;
+    }
 
-		strapi.log.info(
-			`Found ${eventsWithSlugs.length} events with slugs to remove.`
-		);
+    strapi.log.info(
+      `Found ${eventsWithSlugs.length} events with slugs to remove.`,
+    );
 
-		// Remove slugs from all events
-		for (const event of eventsWithSlugs) {
-			await strapi.db.query('api::event.event').update({
-				where: { documentId: event.documentId },
-				data: { slug: null }
-			});
+    // Remove slugs from all events
+    for (const event of eventsWithSlugs) {
+      await strapi.db.query("api::event.event").update({
+        where: { documentId: event.documentId },
+        data: { slug: null },
+      });
 
-			strapi.log.info(`✓ Removed slug from event: "${event.title}"`);
-		}
+      strapi.log.info(`✓ Removed slug from event: "${event.title}"`);
+    }
 
-		strapi.log.info('✓ Migration reverted!');
-	} catch (error) {
-		strapi.log.error('✗ Migration revert failed:', error);
-		throw error;
-	}
+    strapi.log.info("✓ Migration reverted!");
+  } catch (error) {
+    strapi.log.error("✗ Migration revert failed:", error);
+    throw error;
+  }
 }
 
 module.exports = { up, down };
