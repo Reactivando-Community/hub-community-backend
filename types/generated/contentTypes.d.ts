@@ -647,7 +647,7 @@ export interface ApiLocationLocation extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     events: Schema.Attribute.Relation<'oneToMany', 'api::event.event'>;
     full_address: Schema.Attribute.Text;
-    google_maps_url: Schema.Attribute.String;
+    google_maps_url: Schema.Attribute.Text;
     latitude: Schema.Attribute.Decimal;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<

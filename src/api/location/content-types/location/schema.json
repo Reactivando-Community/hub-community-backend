@@ -10,6 +10,7 @@
   "options": {
     "draftAndPublish": false
   },
+  "pluginOptions": {},
   "attributes": {
     "latitude": {
       "type": "decimal"
@@ -21,7 +22,7 @@
       "type": "string"
     },
     "google_maps_url": {
-      "type": "string"
+      "type": "text"
     },
     "events": {
       "type": "relation",
