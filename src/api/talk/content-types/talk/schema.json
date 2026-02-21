@@ -49,6 +49,9 @@
     },
     "subtitle": {
       "type": "string"
+    },
+    "deleted_at": {
+      "type": "datetime"
     }
   }
 }

@@ -510,6 +510,7 @@ export interface ApiCommunityCommunity extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    deleted_at: Schema.Attribute.DateTime;
     events: Schema.Attribute.Relation<'manyToMany', 'api::event.event'>;
     founded_in: Schema.Attribute.Date;
     full_description: Schema.Attribute.Blocks;
@@ -562,6 +563,7 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    deleted_at: Schema.Attribute.DateTime;
     description: Schema.Attribute.Blocks;
     end_date: Schema.Attribute.DateTime;
     images: Schema.Attribute.Media<'images' | 'files' | 'videos', true>;
@@ -645,6 +647,7 @@ export interface ApiLocationLocation extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    deleted_at: Schema.Attribute.DateTime;
     events: Schema.Attribute.Relation<'oneToMany', 'api::event.event'>;
     full_address: Schema.Attribute.Text;
     google_maps_url: Schema.Attribute.Text;
@@ -722,6 +725,7 @@ export interface ApiSpeakerSpeaker extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    deleted_at: Schema.Attribute.DateTime;
     email: Schema.Attribute.String;
     highlight: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
@@ -790,6 +794,7 @@ export interface ApiTalkTalk extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    deleted_at: Schema.Attribute.DateTime;
     description: Schema.Attribute.Blocks;
     event: Schema.Attribute.Relation<'manyToOne', 'api::event.event'>;
     highlight: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;

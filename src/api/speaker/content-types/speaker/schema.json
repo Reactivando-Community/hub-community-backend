@@ -53,6 +53,9 @@
       "relation": "oneToOne",
       "target": "plugin::users-permissions.user",
       "mappedBy": "speaker"
+    },
+    "deleted_at": {
+      "type": "datetime"
     }
   }
 }
