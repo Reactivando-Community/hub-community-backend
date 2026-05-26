@@ -201,10 +201,9 @@ export default {
       // We keep the <%= TOKEN %> which is correctly populated by Strapi
       settings.reset_password.options.message = `
 <p>Olá,</p>
-<p>Bem-vindo à Hub Community!</p>
-<p>Para começar a usar sua conta, clique no link abaixo para criar sua senha:</p>
+<p>Clique no link abaixo para definir sua senha de acesso na Hub Community:</p>
 <p><a href="${passwordCreationUrl}?code=<%= TOKEN %>">${passwordCreationUrl}?code=<%= TOKEN %></a></p>
-<p>Se você não solicitou isso, ignore este email.</p>
+<p>Se você não solicitou isso, pode ignorar este email com segurança.</p>
 <p>Obrigado!</p>`.trim();
 
       await pluginStore.set({ key: "email", value: settings });
