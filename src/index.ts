@@ -200,10 +200,12 @@ export default {
       // 2. Hardcode the URL in the message to be 100% sure it's not empty
       // We keep the <%= TOKEN %> which is correctly populated by Strapi
       settings.reset_password.options.message = `
-<p>We heard that you lost your password. Sorry about that!</p>
-<p>But don't worry! You can use the following link to reset your password:</p>
+<p>Olá,</p>
+<p>Recebemos uma solicitação para definir ou alterar sua senha na Hub Community.</p>
+<p>Clique no link abaixo para prosseguir:</p>
 <p><a href="${resetPasswordUrl}?code=<%= TOKEN %>">${resetPasswordUrl}?code=<%= TOKEN %></a></p>
-<p>Thanks.</p>`.trim();
+<p>Se você não solicitou isso, ignore este email.</p>
+<p>Obrigado!</p>`.trim();
 
       await pluginStore.set({ key: "email", value: settings });
       strapi.log.info(
