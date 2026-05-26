@@ -88,6 +88,11 @@
       "type": "string",
       "required": false
     },
+    "social_security_number": {
+      "type": "string",
+      "required": false,
+      "unique": true
+    },
     "name": {
       "type": "string",
       "required": false
