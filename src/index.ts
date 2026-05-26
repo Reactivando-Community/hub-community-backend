@@ -209,7 +209,7 @@ export default {
 
       await pluginStore.set({ key: "email", value: settings });
       strapi.log.info(
-        `Reset password configuration updated with hardcoded URL: ${resetPasswordUrl}`,
+        `Reset password configuration updated with hardcoded URL: ${passwordCreationUrl}`,
       );
 
       // Verify immediately
