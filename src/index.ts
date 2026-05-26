@@ -194,16 +194,16 @@ export default {
 
     if (settings && settings.reset_password) {
       // 1. Force update the response_url
-      const resetPasswordUrl = `${frontendUrl}/reset-password`;
-      settings.reset_password.options.response_url = resetPasswordUrl;
+      const passwordCreationUrl = `${frontendUrl}/password-creation`;
+      settings.reset_password.options.response_url = passwordCreationUrl;
 
       // 2. Hardcode the URL in the message to be 100% sure it's not empty
       // We keep the <%= TOKEN %> which is correctly populated by Strapi
       settings.reset_password.options.message = `
 <p>Olá,</p>
-<p>Recebemos uma solicitação para definir ou alterar sua senha na Hub Community.</p>
-<p>Clique no link abaixo para prosseguir:</p>
-<p><a href="${resetPasswordUrl}?code=<%= TOKEN %>">${resetPasswordUrl}?code=<%= TOKEN %></a></p>
+<p>Bem-vindo à Hub Community!</p>
+<p>Para começar a usar sua conta, clique no link abaixo para criar sua senha:</p>
+<p><a href="${passwordCreationUrl}?code=<%= TOKEN %>">${passwordCreationUrl}?code=<%= TOKEN %></a></p>
 <p>Se você não solicitou isso, ignore este email.</p>
 <p>Obrigado!</p>`.trim();
 
