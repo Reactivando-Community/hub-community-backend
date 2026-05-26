@@ -1029,9 +1029,7 @@ export interface ApiSwFormSwForm extends Struct.CollectionTypeSchema {
     accepted_in: Schema.Attribute.Date;
     college: Schema.Attribute.String;
     college_course: Schema.Attribute.String;
-    cpf: Schema.Attribute.String &
-      Schema.Attribute.Required &
-      Schema.Attribute.Unique;
+    cpf: Schema.Attribute.String & Schema.Attribute.Required;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1048,8 +1046,7 @@ export interface ApiSwFormSwForm extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    video: Schema.Attribute.Media<'files' | 'videos'> &
-      Schema.Attribute.Required;
+    video: Schema.Attribute.Media<'files' | 'videos'>;
     whatsapp: Schema.Attribute.String & Schema.Attribute.Required;
   };
 }
@@ -1147,6 +1144,7 @@ export interface ApiTeamTeam extends Struct.CollectionTypeSchema {
       'plugin::users-permissions.user'
     >;
     name: Schema.Attribute.String & Schema.Attribute.Required;
+    presentation: Schema.Attribute.Media<'files'>;
     publishedAt: Schema.Attribute.DateTime;
     stage: Schema.Attribute.Enumeration<
       [
@@ -1782,6 +1780,7 @@ export interface PluginUsersPermissionsUser
       'manyToOne',
       'plugin::users-permissions.role'
     >;
+    social_security_number: Schema.Attribute.String & Schema.Attribute.Unique;
     speaker: Schema.Attribute.Relation<'oneToOne', 'api::speaker.speaker'>;
     team: Schema.Attribute.Relation<'manyToOne', 'api::team.team'>;
     twitter: Schema.Attribute.String;
