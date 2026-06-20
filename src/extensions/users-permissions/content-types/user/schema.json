@@ -121,6 +121,14 @@
       "relation": "manyToOne",
       "target": "api::team.team",
       "inversedBy": "members"
+    },
+    "cpf": {
+      "type": "string",
+      "required": false
+    },
+    "date_of_birth": {
+      "type": "date",
+      "required": false
     }
   }
 }

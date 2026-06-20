@@ -458,6 +458,39 @@ export interface ApiAnalyticsEventAnalyticsEvent
   };
 }
 
+export interface ApiAttendanceAttendance extends Struct.CollectionTypeSchema {
+  collectionName: 'attendances';
+  info: {
+    description: 'Attendance records linking users to events (lista de presen\u00E7a)';
+    displayName: 'Attendance';
+    pluralName: 'attendances';
+    singularName: 'attendance';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    event: Schema.Attribute.Relation<'manyToOne', 'api::event.event'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::attendance.attendance'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    users_permissions_user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiCommentReplyCommentReply
   extends Struct.CollectionTypeSchema {
   collectionName: 'comment_replies';
@@ -782,6 +815,10 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
   };
   attributes: {
     agenda: Schema.Attribute.Relation<'oneToMany', 'api::agenda.agenda'>;
+    attendances: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::attendance.attendance'
+    >;
     call_link: Schema.Attribute.String;
     comments: Schema.Attribute.Relation<'oneToMany', 'api::comment.comment'>;
     communities: Schema.Attribute.Relation<
@@ -1029,9 +1066,7 @@ export interface ApiSwFormSwForm extends Struct.CollectionTypeSchema {
     accepted_in: Schema.Attribute.Date;
     college: Schema.Attribute.String;
     college_course: Schema.Attribute.String;
-    cpf: Schema.Attribute.String &
-      Schema.Attribute.Required &
-      Schema.Attribute.Unique;
+    cpf: Schema.Attribute.String & Schema.Attribute.Required;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1048,8 +1083,7 @@ export interface ApiSwFormSwForm extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    video: Schema.Attribute.Media<'files' | 'videos'> &
-      Schema.Attribute.Required;
+    video: Schema.Attribute.Media<'files' | 'videos'>;
     whatsapp: Schema.Attribute.String & Schema.Attribute.Required;
   };
 }
@@ -1147,6 +1181,7 @@ export interface ApiTeamTeam extends Struct.CollectionTypeSchema {
       'plugin::users-permissions.user'
     >;
     name: Schema.Attribute.String & Schema.Attribute.Required;
+    presentation: Schema.Attribute.Media<'files'>;
     publishedAt: Schema.Attribute.DateTime;
     stage: Schema.Attribute.Enumeration<
       [
@@ -1751,9 +1786,11 @@ export interface PluginUsersPermissionsUser
     confirmationToken: Schema.Attribute.String & Schema.Attribute.Private;
     confirmed: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     cover_photo: Schema.Attribute.String;
+    cpf: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    date_of_birth: Schema.Attribute.Date;
     email: Schema.Attribute.Email &
       Schema.Attribute.Required &
       Schema.Attribute.SetMinMaxLength<{
@@ -1810,6 +1847,7 @@ declare module '@strapi/strapi' {
       'admin::user': AdminUser;
       'api::agenda.agenda': ApiAgendaAgenda;
       'api::analytics-event.analytics-event': ApiAnalyticsEventAnalyticsEvent;
+      'api::attendance.attendance': ApiAttendanceAttendance;
       'api::comment-reply.comment-reply': ApiCommentReplyCommentReply;
       'api::comment.comment': ApiCommentComment;
       'api::community.community': ApiCommunityCommunity;
